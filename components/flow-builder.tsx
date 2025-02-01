@@ -33,6 +33,7 @@ export function FlowBuilder() {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null)
+  const [lastNodePosition, setLastNodePosition] = useState({ x: 100, y: 100 })
 
   const onConnect = useCallback((params: Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges])
 
@@ -41,12 +42,13 @@ export function FlowBuilder() {
       const newNode: FlowNode = {
         id: uuidv4(),
         type,
-        position: { x: 100, y: 100 },
+        position: { x: lastNodePosition.x + 50, y: lastNodePosition.y + 50 },
         data: { label: `New ${type} Node`, instruction: "" },
       }
       setNodes((nds) => [...nds, newNode])
+      setLastNodePosition({ x: lastNodePosition.x + 50, y: lastNodePosition.y + 50 })
     },
-    [setNodes],
+    [setNodes, lastNodePosition],
   )
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -65,6 +67,10 @@ export function FlowBuilder() {
     [setNodes],
   )
 
+  const handlePaneClick = useCallback(() => {
+    setSelectedNode(null)
+  }, [setSelectedNode])
+
   return (
     <div className="flex h-screen">
       <NodePalette onAddNode={handleAddNode} />
@@ -77,13 +83,14 @@ export function FlowBuilder() {
           onConnect={onConnect}
           onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
+          onPaneClick={handlePaneClick}
           fitView
         >
           <Background />
           <Controls />
         </ReactFlow>
       </div>
-      <NodeSettings node={selectedNode} onSettingsChange={handleSettingsChange} />
+      {selectedNode && <NodeSettings node={selectedNode} onSettingsChange={handleSettingsChange} />}
     </div>
   )
 }
